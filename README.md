@@ -14,10 +14,8 @@
 - clone してきたプロジェクトを VSCode で開く
 - コンテナーで再度開く
 - ビルドが完了したら、ターミナルを二つ開く
-  `/workspace/app` で `go run main.go`
-
-  `/workspace/client` で `npm install` をしてから `npm run start`
-
+  ```/workspace/app``` で ```go run main.go```
+  ```/workspace/client``` で ```npm install``` をしてから ```npm run start```
   すると、プロジェクトが立ち上がる
 - npm run android とすると android の実行環境が立ち上がる
 
