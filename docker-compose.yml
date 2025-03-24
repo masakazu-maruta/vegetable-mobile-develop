@@ -27,8 +27,11 @@ services:
       - ${CLIENT_PORT}:3000 #react native
     user: "node"
     volumes:
+      - ${SSH_AUTH_SOCK}:/tmp/ssh-agent.sock
       - ./:/workspace
       - node_modules:/client/node_modules
+    environment:
+      SSH_AUTH_SOCK: "/tmp/ssh-agent.sock"
     depends_on:
       - db
 
