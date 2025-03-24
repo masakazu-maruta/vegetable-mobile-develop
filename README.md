@@ -33,7 +33,7 @@
      npm run start
      ```
    - `npm run android` とすると android の実行環境が立ち上がる
-   - android実行環境でのリロード：`npm run android` を実行したターミナルで `r` を入力してEnter
+      -  android実行環境でのリロード：`npm run android` を実行したターミナルで `r` を入力してEnter
 
 # 使用パッケージ
 
