@@ -32,8 +32,8 @@
      ```bash
      npm run start
      ```
-   - npm run android とすると android の実行環境が立ち上がる
-   - アプリケーションのリロード：npm run androidを実行したターミナルで 「r」を入力してEnter
+   - `npm run android` とすると android の実行環境が立ち上がる
+   - アプリケーションのリロード：`npm run android` を実行したターミナルで `r` を入力してEnter
 
 # 使用パッケージ
 
