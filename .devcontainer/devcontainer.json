@@ -1,0 +1,35 @@
+{
+    "name": "Vegitable",
+    "dockerComposeFile": "../docker-compose.yml",
+    "service": "dev",
+    "workspaceFolder": "/workspace",
+    "shutdownAction": "stopCompose",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "stylelint.vscode-stylelint",
+                "esbenp.prettier-vscode",
+                "yoavbls.pretty-ts-errors",
+                "formulahendry.auto-rename-tag",
+                "dsznajder.es7-react-js-snippets",
+                "streetsidesoftware.code-spell-checker",
+                "christian-kohler.path-intellisense",
+                "usernamehw.errorlens",
+                "golang.go",
+                "juggernautjp.less-toml",
+                "cweijan.vscode-database-client2",
+                "dadroit.dadroit-json-generator",
+                "msjsdiag.vscode-react-native"
+            ],
+            "settings": {
+                "editor.formatOnSave": true,
+                "files.insertFinalNewline": true,
+                "editor.defaultFormatter": "esbenp.prettier-vscode"
+            }
+        }
+    },
+    "remoteUser": "node",
+    "privileged": true,
+    "postStartCommand": "sudo chown root:kvm /dev/kvm"
+}
