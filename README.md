@@ -14,10 +14,26 @@
 - clone してきたプロジェクトを VSCode で開く
 - コンテナーで再度開く
 - ビルドが完了したら、ターミナルを二つ開く
-- ```/workspace/app``` で ```go run main.go```
-- ```/workspace/client``` で ```npm install``` をしてから ```npm run start```
-  すると、プロジェクトが立ち上がる
-- npm run android とすると android の実行環境が立ち上がる
+
+1. **Goバックエンドの起動**
+   - ターミナルで `/workspace/app` ディレクトリに移動
+   - 以下のコマンドを実行してGoバックエンドを起動します:
+     ```bash
+     go run main.go
+     ```
+
+2. **Reactフロントエンドの起動**
+   - ターミナルで `/workspace/client` ディレクトリに移動
+   - 以下のコマンドで依存関係をインストールします:
+     ```bash
+     npm install
+     ```
+   - 次に、フロントエンドを起動するために以下のコマンドを実行します:
+     ```bash
+     npm run start
+     ```
+   - npm run android とすると android の実行環境が立ち上がる
+   - アプリケーションのリロード：npm run androidを実行したターミナルで 「r」を入力してEnter
 
 # 使用パッケージ
 
