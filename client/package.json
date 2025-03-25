@@ -5,8 +5,8 @@
   "scripts": {
     "start": "expo start --port 3000",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --port 3000 --android",
-    "ios": "expo start --port 3000 --ios",
+    "android": "EXPO_PUBLIC_API_URL=http://dev:8080 expo start --port 3000 --android",
+    "ios": "EXPO_PUBLIC_API_URL=http://dev:8080 expo start --port 3000 --ios",
     "web": "expo start --port 3000 --web",
     "test": "jest --watchAll",
     "lint": "expo lint"

@@ -1,0 +1,7 @@
+.env
+app/tmp
+*.exe
+*.out
+*.a
+*.o
+*.so

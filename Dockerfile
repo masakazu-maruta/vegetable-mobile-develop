@@ -12,6 +12,7 @@ RUN apt-get update && \
     locales \
     wget \
     unzip \
+    tree \
     libpulse0 \
     qemu-kvm \
     libvirt-daemon-system \
@@ -21,7 +22,14 @@ RUN apt-get update && \
     cpu-checker \
     openjdk-17-jdk \
     android-sdk \
+    && sed -i -E 's/^# (ja_JP.UTF-8)/\1/' /etc/locale.gen \
+    && locale-gen \
+    && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
+
+ENV LANG ja_JP.UTF-8
+ENV LANGUAGE ja_JP:ja
+ENV LC_ALL ja_JP.UTF-8
 
 RUN usermod -aG sudo node \
     && echo "node ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/node \
@@ -39,7 +47,6 @@ RUN mkdir .local && \
 
 #開発用
 FROM base as dev
-RUN sudo apt-get install -y tree
 WORKDIR /workspace/app
 RUN go install github.com/air-verse/air@latest
 WORKDIR /home/node

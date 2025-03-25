@@ -2,7 +2,6 @@
   Goとの接続テスト用のファイルです。
   好きなタイミングで削除してもらっても構いません。
 */
-
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 const ConnectGo = () => {
