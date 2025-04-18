@@ -1,6 +1,6 @@
 # 開発で利用するディレクトリ
 
-- app ... go(echo)開発用
+- server ... go(echo)開発用
 - client ... react-native 開発用
 
 # 初期設定
@@ -15,14 +15,15 @@
 - コンテナーで再度開く
 - ビルドが完了したら、ターミナルを二つ開く
 
-1. **Goの起動**
-   - ターミナルで `/workspace/app` ディレクトリに移動
-   - 以下のコマンドを実行してGoバックエンドを起動します:
+1. **Go の起動**
+
+   - ターミナルで `/workspace/server` ディレクトリに移動
+   - 以下のコマンドを実行して Go バックエンドを起動します:
      ```bash
      go run main.go
      ```
 
-2. **React Nativeの起動**
+2. **React Native の起動**
    - ターミナルで `/workspace/client` ディレクトリに移動
    - 以下のコマンドで依存関係をインストールします:
      ```bash
@@ -33,7 +34,7 @@
      npm run start
      ```
    - `npm run android` とすると android の実行環境が立ち上がる
-      -  android実行環境でのリロード：`npm run android` を実行したターミナルで `r` を入力してEnter
+     - android 実行環境でのリロード：`npm run android` を実行したターミナルで `r` を入力して Enter
 
 # 使用パッケージ
 
