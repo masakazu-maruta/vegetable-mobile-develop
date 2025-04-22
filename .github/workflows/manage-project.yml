@@ -13,7 +13,7 @@ jobs:
       runs-on: ubuntu-latest
       steps:
         - name: Move new issue to To do column
-          uses: srggrs/assign-one-project-column@v1
+          uses: actions/add-to-project@v1
           with:
             project-url: https://github.com/users/masakazu-maruta/projects/1
             column-name: Todo
@@ -24,7 +24,7 @@ jobs:
       runs-on: ubuntu-latest
       steps:
         - name: Move labeled issue to In Progress column
-          uses: srggrs/assign-one-project-column@v1
+          uses: actions/add-to-project@v1
           with:
             project-url: https://github.com/users/masakazu-maruta/projects/1
             column-name: InProgress
@@ -44,30 +44,61 @@ jobs:
             echo "::set-output name=label::PR:Approved"
 
       - name: Move PR to project column
-        uses: srggrs/assign-one-project-column@v1
+        uses: actions/add-to-project@v1
         with:
           project-url: https://github.com/users/masakazu-maruta/projects/1
           column-name: ${{ steps.check_reviewers.outputs.label }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-  pr-project-after-review:
-    if: github.event_name == 'pull_request' && github.event.action == 'review'
+  auto-label-if-reject:
+    if: github.event_name == 'pull_request' && github.event.action == 'review' && github.event.review.state == 'changes_requested'
     runs-on: ubuntu-latest
     steps:
-      - name: 
+      - name: Check Review Status
         id: review_label
         run: |
-          STATE="${{ github.event.review.state }}"
-          if [ "$STATE" = "approved" ]; then
-            echo "::set-output name=label::PR:Approved"
-          elif [ "$STATE" = "changes_requested" ]; then
-            echo "::set-output name=label::PR:Rejected"
+          echo "::set-output name=label::PR:Rejected"
+          echo "::set-output name=remove_label::PR:Approved"
+          echo "::set-output name=column::PR:Rejected"
 
-      - name: Change Status after review
+      - name: Remove old status label
+        if: steps.review_label.outputs.remove_label != ''
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: ${{ steps.review_label.outputs.remove_label }}
+
+      - name: Add new status label
+        if: steps.review_label.outputs.label != ''
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: ${{ steps.review_label.outputs.label }}
+
+      - name: Move PR to Project Column
+        if: steps.review_label.outputs.column != ''
+        uses: actions/add-to-project@v1
+        with:
+          project-url: https://github.com/users/masakazu-maruta/projects/1
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          column-name: ${{ steps.review_label.outputs.column }}
+
+  auto-merge-if-approved:
+      - name: Auto Merge PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          TITLE="${{ github.event.pull_request.title }}"
+          if ! gh pr merge $PR_URL --merge --delete-branch --admin; then
+            echo "❌ 自動マージに失敗しました"
+            MESSAGE="## ❌ **自動マージ失敗**\n📝 **タイトル:** $TITLE \n🔗 **リンク:** $PR_URL"
+            curl -X POST -H "Content-Type: application/json" \
+              -d "{\"content\": \"$MESSAGE\"}" \
+              $DISCORD_WEBHOOK
+            exit 1
+          fi
 
   close-related-issues:
     if: github.event.pull_request.merged == true
