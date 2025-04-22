@@ -1,0 +1,19 @@
+name: Stale Checker
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 毎日0時に実行
+  workflow_dispatch:
+
+jobs:
+  stale-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v8
+        with:
+          days-before-stale: 14
+          stale-issue-label: 'stale'
+          exempt-issue-labels: 'pinned,security'
+          days-before-close: -1
+          operations-per-run: 100
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
