@@ -84,6 +84,9 @@ jobs:
           column-name: ${{ steps.review_label.outputs.column }}
 
   auto-merge-if-approved:
+    if: github.event_name == 'pull_request' && github.event.action == 'review' && github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
+    steps:
       - name: Auto Merge PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
