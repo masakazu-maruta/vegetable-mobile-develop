@@ -1,0 +1,66 @@
+name: Notify Discord
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened, review, closed]
+  workflow_dispatch:
+
+jobs:
+  notify-discord:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Discord
+        run: |
+          EVENT_TYPE="${{ github.event_name }}"
+          MESSAGE=""
+
+          if [[ "$EVENT_TYPE" == "issues" ]]; then
+            ACTION="${{ github.event.action }}"
+            ISSUE_URL="${{ github.event.issue.html_url }}"
+            TITLE="${{ github.event.issue.title }}"
+            if [[ "$ACTION" == "opened" ]]; then
+              MESSAGE="📝 ISSUE が作成されました: [$TITLE]($ISSUE_URL)"
+            fi
+
+          elif [[ "$EVENT_TYPE" == "pull_request" ]]; then
+            ACTION="${{ github.event.action }}"
+            PR_URL="${{ github.event.pull_request.html_url }}"
+            TITLE="${{ github.event.pull_request.title }}"
+            
+            if [[ "$ACTION" == "opened" ]]; then
+              REVIEWERS_COUNT=$(echo '${{ toJson(github.event.pull_request.requested_reviewers) }}' | jq 'length')
+              if [[ "$REVIEWERS_COUNT" -gt 0 ]]; then
+                MESSAGE="👀 レビュー依頼付き\n🔃 PR が作成されました: [$TITLE]($PR_URL)"
+              else
+                MESSAGE="🔃 PR が作成されました: [$TITLE]($PR_URL)"
+              fi
+            elif [[ "$ACTION" == "review" ]]; then
+              REVIEW_STATE="${{ github.event.review.state }}"  # approved / changes_requested / commented
+              REVIEWER="${{ github.event.review.user.login }}"
+              case "$REVIEW_STATE" in
+                approved)
+                  MESSAGE="✅ $REVIEWER が PR を承認しました: [$TITLE]($PR_URL)"
+                  ;;
+                changes_requested)
+                  MESSAGE="🔧 $REVIEWER が PR に修正をリクエストしました: [$TITLE]($PR_URL)"
+                  ;;
+              esac
+            elif [[ "$ACTION" == "closed" ]]; then
+              MERGED="${{ github.event.pull_request.merged }}"
+              if [[ "$MERGED" == "true" ]]; then
+                MESSAGE="🎉 PR がマージされました！: [$TITLE]($PR_URL)"
+              else
+                MESSAGE="❌ マージ無しで PR がクローズされました...: [$TITLE]($PR_URL)"
+              fi
+            fi
+          fi
+
+          if [[ -n "$MESSAGE" ]]; then
+            curl -X POST -H "Content-Type: application/json" \
+              -d "{\"content\": \"$MESSAGE\"}" \
+              $DISCORD_WEBHOOK
+          fi
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
