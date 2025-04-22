@@ -1,0 +1,96 @@
+name: Manage Project
+
+on:
+  issues:
+    types: [opened, labeled]
+  pull_request:
+    types: [opened, review, closed]
+  workflow_dispatch:
+
+jobs:
+  issue-project:
+      if: github.event_name == 'issues' && github.event.action == 'opened'
+      runs-on: ubuntu-latest
+      steps:
+        - name: Move new issue to To do column
+          uses: srggrs/assign-one-project-column@v1
+          with:
+            project-url: https://github.com/users/masakazu-maruta/projects/1
+            column-name: Todo
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+  
+  issue-to-inprogress:
+      if: github.event.label.name == 'in-progress'
+      runs-on: ubuntu-latest
+      steps:
+        - name: Move labeled issue to In Progress column
+          uses: srggrs/assign-one-project-column@v1
+          with:
+            project-url: https://github.com/users/masakazu-maruta/projects/1
+            column-name: InProgress
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  pr-project:
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for reviewers
+        id: check_reviewers
+        run: |
+          REVIEWERS_COUNT=$(echo "${{ toJson(github.event.pull_request.requested_reviewers) }}" | jq 'length')
+          if [ "$REVIEWERS_COUNT" -gt 0 ]; then
+            echo "::set-output name=label::PR:InReview"
+          else
+            echo "::set-output name=label::PR:Approved"
+
+      - name: Move PR to project column
+        uses: srggrs/assign-one-project-column@v1
+        with:
+          project-url: https://github.com/users/masakazu-maruta/projects/1
+          column-name: ${{ steps.check_reviewers.outputs.label }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  pr-project-after-review:
+    if: github.event_name == 'pull_request' && github.event.action == 'review'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 
+        id: review_label
+        run: |
+          STATE="${{ github.event.review.state }}"
+          if [ "$STATE" = "approved" ]; then
+            echo "::set-output name=label::PR:Approved"
+          elif [ "$STATE" = "changes_requested" ]; then
+            echo "::set-output name=label::PR:Rejected"
+
+      - name: Change Status after review
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: ${{ steps.review_label.outputs.label }}
+
+  close-related-issues:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract issue number from branch name
+        id: extract_issue
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          if [[ "$BRANCH_NAME" =~ ^([0-9]+)- ]]; then
+            ISSUE_NUMBER="${BASH_REMATCH[1]}"
+            echo "Found issue number: $ISSUE_NUMBER"
+            echo "::set-output name=issue_number::$ISSUE_NUMBER"
+          else
+            echo "No issue number found in branch name"
+            echo "::set-output name=issue_number::"
+          fi
+
+      - name: Close related issue from branch name
+        if: steps.extract_issue.outputs.issue_number != ''
+        uses: peter-evans/close-issue@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment: |
+            ✅ PR がマージされたため、この Issue は自動的にクローズされました
+          issue-number: ${{ steps.extract_issue.outputs.issue_number }}
