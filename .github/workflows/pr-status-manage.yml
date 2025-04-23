@@ -34,4 +34,4 @@ jobs:
       HTML_URL: ${{ github.event.pull_request.html_url }}
       FieldKeyValues: '[{ "key": "Status", "value": "${{ needs.check-reviewers.outputs.column }}" }]'
     secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}

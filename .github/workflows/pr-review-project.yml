@@ -29,14 +29,14 @@ jobs:
         if: steps.label.outputs.remove_label != ''
         uses: actions-ecosystem/action-remove-labels@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           labels: ${{ steps.label.outputs.remove_label }}
 
       - name: Add new status label
         if: steps.label.outputs.label != ''
         uses: actions-ecosystem/action-add-labels@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           labels: ${{ steps.label.outputs.label }}
 
   move-pr-to-project:
@@ -50,7 +50,7 @@ jobs:
       HTML_URL: ${{ github.event.pull_request.html_url }}
       FieldKeyValues: '[{ "key": "Status", "value": "${{ needs.auto-label-if-reject.outputs.column }}" }]'
     secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   auto-merge-if-approved:
     if: github.event_name == 'pull_request' && github.event.action == 'review' && github.event.review.state == 'approved'
@@ -58,7 +58,7 @@ jobs:
     steps:
       - name: Auto Merge PR
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
           PR_URL="${{ github.event.pull_request.html_url }}"

@@ -46,11 +46,11 @@ jobs:
             echo "✅ GH_TOKEN is set"
           fi
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
       - name: Add Item Project
         run: gh project item-add ${{ inputs.ProjectNumber }} --owner ${{ github.repository_owner }} --url ${{ inputs.HTML_URL }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Get Global ID
         run: |
@@ -95,7 +95,7 @@ jobs:
           echo $clean_enc_data
           echo "FIELD_ID_VALUES=$clean_enc_data" >> $GITHUB_ENV
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Get Item ID
         run: |
@@ -116,7 +116,7 @@ jobs:
           ITEM_ID=$(gh api graphql -f query="$QUERY" --jq '.data.repository.pullRequest.projectItems.nodes[0].id')
           echo "ITEM_ID=$ITEM_ID" >> $GITHUB_ENV
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Set Fields
         run: |
@@ -127,4 +127,4 @@ jobs:
             gh project item-edit --id "${{ env.ITEM_ID }}" --field-id "$field_id" --project-id "${{ env.PROJECT_ID }}" --single-select-option-id "$value_id"
           done
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}

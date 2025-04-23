@@ -21,7 +21,7 @@ jobs:
       HTML_URL: ${{ github.event.issue.html_url }}
       FieldKeyValues: '[{ "key": "Status", "value": "Todo" }]'
     secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   
   issue-to-inprogress:
@@ -34,4 +34,4 @@ jobs:
       HTML_URL: ${{ github.event.issue.html_url }}
       FieldKeyValues: '[{ "key": "Status", "value": "InProgress" }]'
     secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
