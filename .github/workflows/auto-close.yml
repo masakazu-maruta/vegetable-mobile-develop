@@ -1,0 +1,64 @@
+name: Auto Close
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+
+jobs:
+  extract-and-close-issue:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    outputs:
+      issue_number: ${{ steps.extract.outputs.issue_number }}
+      is_closed: ${{ steps.check.outputs.is_closed }}
+    steps:
+      - name: Extract issue number from branch name
+        id: extract
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          if [[ "$BRANCH_NAME" =~ ^([0-9]+)- ]]; then
+            ISSUE_NUMBER="${BASH_REMATCH[1]}"
+            echo "Found issue number: $ISSUE_NUMBER"
+            echo "issue_number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
+          else
+            echo "No issue number found in branch name"
+            echo "issue_number=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Close related issue
+        if: steps.extract.outputs.issue_number != ''
+        uses: peter-evans/close-issue@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment: |
+            ✅ PR がマージされたため、この Issue は自動的にクローズされました
+          issue-number: ${{ steps.extract.outputs.issue_number }}
+
+      - name: Check if Issue is Closed
+        id: check
+        if: steps.extract.outputs.issue_number != ''
+        run: |
+          ISSUE_NUMBER=${{ steps.extract.outputs.issue_number }}
+          STATUS=$(gh issue view $ISSUE_NUMBER --repo ${{ github.repository }} --json state --jq '.state')
+          echo "Issue status: $STATUS"
+          if [ "$STATUS" == "CLOSED" ]; then
+            echo "is_closed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_closed=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  update-project-status:
+    needs: extract-and-close-issue
+    if: needs.extract-and-close-issue.outputs.is_closed == 'true'
+    uses: ./.github/workflows/project-action/issue-assignment-to-project.yml
+    with:
+      ProjectNumber: 1
+      RepositoryName: ${{ github.repository }}
+      IssueNumber: ${{ needs.extract-and-close-issue.outputs.issue_number }}
+      HTML_URL: https://github.com/${{ github.repository }}/issues/${{ needs.extract-and-close-issue.outputs.issue_number }}
+      FieldKeyValues: '[{ "key": "Status", "value": "Done" }]'
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}

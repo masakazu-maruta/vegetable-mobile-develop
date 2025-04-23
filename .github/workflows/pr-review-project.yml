@@ -1,0 +1,69 @@
+name: Pr Review
+
+on:
+  pull_request:
+    types: [review, closed]
+  workflow_dispatch:
+
+jobs:
+  auto-label-if-reject:
+    if: github.event_name == 'pull_request' && github.event.action == 'review' && github.event.review.state == 'changes_requested'
+    runs-on: ubuntu-latest
+    outputs:
+      column: ${{ steps.label.outputs.column }}
+      label: ${{ steps.label.outputs.label }}
+      remove_label: ${{ steps.label.outputs.remove_label }}
+    steps:
+      - name: Check Review Status
+        id: label
+        run: |
+          echo "label=PR:Rejected" >> "$GITHUB_OUTPUT"
+          echo "remove_label=PR:Approved" >> "$GITHUB_OUTPUT"
+          echo "column=PR:Rejected" >> "$GITHUB_OUTPUT"
+
+      - name: Remove old status label
+        if: steps.label.outputs.remove_label != ''
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: ${{ steps.label.outputs.remove_label }}
+
+      - name: Add new status label
+        if: steps.label.outputs.label != ''
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: ${{ steps.label.outputs.label }}
+
+  move-pr-to-project:
+    needs: auto-label-if-reject
+    if: ${{ needs.auto-label-if-reject.outputs.column != '' }}
+    uses: ./.github/workflows/project-action/pr-assignment-to-project.yml
+    with:
+      ProjectNumber: 1
+      RepositoryName: ${{ github.repository }}
+      PRNumber: ${{ github.event.pull_request.number }}
+      HTML_URL: ${{ github.event.pull_request.html_url }}
+      FieldKeyValues: '[{ "key": "Status", "value": "${{ needs.auto-label-if-reject.outputs.column }}" }]'
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+ auto-merge-if-approved:
+    if: github.event_name == 'pull_request' && github.event.action == 'review' && github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto Merge PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          TITLE="${{ github.event.pull_request.title }}"
+          if ! gh pr merge $PR_URL --merge --delete-branch --admin; then
+            echo "❌ 自動マージに失敗しました"
+            MESSAGE="## ❌ **自動マージ失敗**\n📝 **タイトル:** $TITLE \n🔗 **リンク:** $PR_URL"
+            curl -X POST -H "Content-Type: application/json" \
+              -d "{\"content\": \"$MESSAGE\"}" \
+              $DISCORD_WEBHOOK
+            exit 1
+          fi

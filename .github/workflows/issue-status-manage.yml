@@ -1,0 +1,32 @@
+name: Issue Status Manage
+
+on:
+  issues:
+    types: [opened, labeled]
+  workflow_dispatch:
+
+jobs:
+  issue-project:
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    uses: ./.github/workflows/project-action/issue-assignment-to-project.yml
+    with:
+      ProjectNumber: 1
+      RepositoryName: ${{ github.repository }}
+      IssueNumber: ${{ github.event.issue.number }}
+      HTML_URL: ${{ github.event.issue.html_url }}
+      FieldKeyValues: '[{ "key": "Status", "value": "Todo" }]'
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  
+  issue-to-inprogress:
+    if:  github.event_name == 'issues' && github.event.label.name == 'in-progress'
+    uses: ./.github/workflows/project-action/issue-assignment-to-project.yml
+    with:
+      ProjectNumber: 1
+      RepositoryName: ${{ github.repository }}
+      IssueNumber: ${{ github.event.issue.number }}
+      HTML_URL: ${{ github.event.issue.html_url }}
+      FieldKeyValues: '[{ "key": "Status", "value": "InProgress" }]'
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
