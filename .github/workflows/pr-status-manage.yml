@@ -22,7 +22,7 @@ jobs:
 
   pr-project:
     needs: check-reviewers
-    uses: user./.github/workflows/pr-assignment-to-project.yml@main
+    uses: ./.github/workflows/pr-assignment-to-project.yml@main
     with:
       ProjectNumber: 1
       RepositoryName: ${{ github.repository }}

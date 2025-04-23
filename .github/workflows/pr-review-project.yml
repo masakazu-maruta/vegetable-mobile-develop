@@ -38,7 +38,7 @@ jobs:
   move-pr-to-project:
     needs: auto-label-if-reject
     if: ${{ needs.auto-label-if-reject.outputs.column != '' }}
-    uses: user./.github/workflows/pr-assignment-to-project.yml@main
+    uses: ./.github/workflows/pr-assignment-to-project.yml@main
     with:
       ProjectNumber: 1
       RepositoryName: ${{ github.repository }}
@@ -48,7 +48,7 @@ jobs:
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
- auto-merge-if-approved:
+  auto-merge-if-approved:
     if: github.event_name == 'pull_request' && github.event.action == 'review' && github.event.review.state == 'approved'
     runs-on: ubuntu-latest
     steps:
