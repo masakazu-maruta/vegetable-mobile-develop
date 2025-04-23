@@ -36,8 +36,8 @@ jobs:
             IssueNumber: ${{ github.event.issue.number }}
             HTML_URL: ${{ github.event.issue.html_url }}
             FieldKeyValues: '[{ "key": "Status", "value": "InProgress" }]'
-          secrets:
-            GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        secrets:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   pr-project:
     if: github.event_name == 'pull_request' && github.event.action == 'opened'
