@@ -36,10 +36,52 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Add Item Project
-        run: gh project item-add ${{ inputs.ProjectNumber }} --owner ${{ github.repository_owner }} --url ${{ inputs.HTML_URL }}
+        
+      - name: Add Item to Project (via GraphQL)
+        run: |
+          # Get the ISSUE node ID
+          ISSUE_NODE_ID=$(gh api graphql -f query="
+            query {
+              repository(owner: \"${{ github.repository_owner }}\", name: \"${{ inputs.RepositoryName }}\") {
+                issue(number: ${{ inputs.IssueNumber }}) {
+                  id
+                }
+              }
+            }
+          " --jq '.data.repository.issue.id')
+
+          echo "ISSUE_NODE_ID=$ISSUE_NODE_ID"
+
+          # Get the Project ID
+          PROJECT_ID=$(gh api graphql -f query="
+            query {
+              user(login: \"${{ github.repository_owner }}\") {
+                projectV2(number: ${{ inputs.ProjectNumber }}) {
+                  id
+                }
+              }
+            }
+          " --jq '.data.user.projectV2.id')
+
+          echo "PROJECT_ID=$PROJECT_ID"
+          echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
+
+          # Add issue to project
+          gh api graphql -f query="
+            mutation {
+              addProjectV2ItemById(input: {
+                projectId: \"$PROJECT_ID\",
+                contentId: \"$ISSUE_NODE_ID\"
+              }) {
+                item {
+                  id
+                }
+              }
+            }
+          "
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
 
       - name: Get Global ID
         run: |

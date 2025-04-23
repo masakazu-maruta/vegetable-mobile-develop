@@ -47,8 +47,48 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      - name: Add Item Project
-        run: gh project item-add ${{ inputs.ProjectNumber }} --owner ${{ github.repository_owner }} --url ${{ inputs.HTML_URL }}
+      - name: Add PR to Project (via GraphQL)
+        run: |
+          # Get the PR node ID
+          PR_NODE_ID=$(gh api graphql -f query="
+            query {
+              repository(owner: \"${{ github.repository_owner }}\", name: \"${{ inputs.RepositoryName }}\") {
+                pullRequest(number: ${{ inputs.PRNumber }}) {
+                  id
+                }
+              }
+            }
+          " --jq '.data.repository.pullRequest.id')
+
+          echo "PR_NODE_ID=$PR_NODE_ID"
+
+          # Get the Project ID
+          PROJECT_ID=$(gh api graphql -f query="
+            query {
+              user(login: \"${{ github.repository_owner }}\") {
+                projectV2(number: ${{ inputs.ProjectNumber }}) {
+                  id
+                }
+              }
+            }
+          " --jq '.data.user.projectV2.id')
+
+          echo "PROJECT_ID=$PROJECT_ID"
+          echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
+
+          # Add PR to project
+          gh api graphql -f query="
+            mutation {
+              addProjectV2ItemById(input: {
+                projectId: \"$PROJECT_ID\",
+                contentId: \"$PR_NODE_ID\"
+              }) {
+                item {
+                  id
+                }
+              }
+            }
+          "
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
