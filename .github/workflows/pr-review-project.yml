@@ -46,7 +46,7 @@ jobs:
       HTML_URL: ${{ github.event.pull_request.html_url }}
       FieldKeyValues: '[{ "key": "Status", "value": "${{ needs.auto-label-if-reject.outputs.column }}" }]'
     secrets:
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   auto-merge-if-approved:
     if: github.event_name == 'pull_request' && github.event.action == 'review' && github.event.review.state == 'approved'
