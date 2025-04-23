@@ -1,5 +1,10 @@
 name: Pr Review
 
+permissions:
+  contents: read
+  pull-requests: write
+  project: write
+
 on:
   pull_request:
     types: [review, closed]

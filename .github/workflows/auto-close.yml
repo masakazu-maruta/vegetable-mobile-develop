@@ -1,5 +1,11 @@
 name: Auto Close
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  project: write
+
 on:
   pull_request:
     types: [closed]
