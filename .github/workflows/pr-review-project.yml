@@ -45,7 +45,7 @@ jobs:
     uses: ./.github/workflows/pr-assignment-to-project.yml
     with:
       ProjectNumber: 1
-      RepositoryName: ${{ github.repository }}
+      RepositoryName: ${{ github.repository.split('/')[1] }}
       PRNumber: ${{ github.event.pull_request.number }}
       HTML_URL: ${{ github.event.pull_request.html_url }}
       FieldKeyValues: '[{ "key": "Status", "value": "${{ needs.auto-label-if-reject.outputs.column }}" }]'
