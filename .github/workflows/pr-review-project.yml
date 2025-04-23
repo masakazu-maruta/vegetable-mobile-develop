@@ -38,7 +38,7 @@ jobs:
   move-pr-to-project:
     needs: auto-label-if-reject
     if: ${{ needs.auto-label-if-reject.outputs.column != '' }}
-    uses: ./.github/workflows/pr-assignment-to-project.yml@main
+    uses: ./.github/workflows/pr-assignment-to-project.yml@dev
     with:
       ProjectNumber: 1
       RepositoryName: ${{ github.repository }}
