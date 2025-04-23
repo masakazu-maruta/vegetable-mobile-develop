@@ -35,7 +35,7 @@ jobs:
         if: steps.extract.outputs.issue_number != ''
         uses: peter-evans/close-issue@v3
         with:
-          github-token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           comment: |
             ✅ PR がマージされたため、この Issue は自動的にクローズされました
           issue-number: ${{ steps.extract.outputs.issue_number }}
