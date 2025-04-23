@@ -1,0 +1,119 @@
+name: PullRequest assignment to Project
+on:
+  workflow_call:
+    inputs:
+      ProjectNumber:
+        description: "紐づけたいProjectの番号"
+        required: true
+        type: number
+      HTML_URL:
+        description: "PRのHTML URL"
+        required: true
+        type: string
+      FieldKeyValues:
+        description: "設定したいSelect FieldのKeyとValueの組み合わせ"
+        required: true
+        type: string
+      RepositoryName:
+        description: "リポジトリ名"
+        required: true
+        type: string
+      PRNumber:
+        description: "紐づけたいPRの番号"
+        required: true
+        type: number
+    secrets:
+      GH_TOKEN:
+        description: "GitHub Token"
+        required: true
+
+jobs:
+  assign_to_project:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Add Item Project
+        run: gh project item-add ${{ inputs.ProjectNumber }} --owner ${{ github.repository_owner }} --url ${{ inputs.HTML_URL }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Get Global ID
+        run: |
+          QUERY="
+            query {
+              user(login: \"${{ github.repository_owner }}\") {
+                projectV2(number: ${{ inputs.ProjectNumber }}) {
+                  id
+                  fields(first: 100) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          "
+
+          gh api graphql -f query="$QUERY" > project_data.json
+          echo "PROJECT_ID=$(jq -r '.data.user.projectV2.id' project_data.json)" >> $GITHUB_ENV
+
+          field_values=$(echo '${{ inputs.FieldKeyValues }}' | jq -c '.[]')
+          enc_data=""
+          while IFS= read -r key_value; do
+            field_name=$(echo "$key_value" | jq -r '.key')
+            value_name=$(echo "$key_value" | jq -r '.value')
+
+            field_id=$(jq -r --arg field_name "$field_name" '.data.user.projectV2.fields.nodes[] | select(.name == $field_name) | .id' project_data.json)
+            value_id=$(jq -r --arg field_name "$field_name" --arg option_name "$value_name" '.data.user.projectV2.fields.nodes[] | select(.name == $field_name).options[] | select(.name == $option_name) | .id' project_data.json)
+
+            enc_data+="$field_id=$value_id,"
+          done <<< "$field_values"
+
+          clean_enc_data=$(echo "$enc_data" | sed 's/,$//')
+          echo $clean_enc_data
+          echo "FIELD_ID_VALUES=$clean_enc_data" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Get Item ID
+        run: |
+          QUERY="
+            query {
+              repository(owner: \"${{ github.repository_owner }}\", name: \"${{ inputs.RepositoryName }}\") {
+                pullRequest(number: ${{ inputs.PRNumber }}) {
+                  projectItems(first: 1) {
+                    nodes {
+                      id
+                    }
+                  }
+                }
+              }
+            }
+          "
+
+          ITEM_ID=$(gh api graphql -f query="$QUERY" --jq '.data.repository.pullRequest.projectItems.nodes[0].id')
+          echo "ITEM_ID=$ITEM_ID" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Set Fields
+        run: |
+          for field_id_value in $(echo "${{ env.FIELD_ID_VALUES }}" | tr ',' '\n'); do
+            field_id=$(echo $field_id_value | cut -d '=' -f1)
+            value_id=$(echo $field_id_value | cut -d '=' -f2)
+
+            gh project item-edit --id "${{ env.ITEM_ID }}" --field-id "$field_id" --project-id "${{ env.PROJECT_ID }}" --single-select-option-id "$value_id"
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
