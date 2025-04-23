@@ -23,6 +23,7 @@ jobs:
             echo "column=PR:InReview" >> "$GITHUB_OUTPUT"
           else
             echo "column=PR:Approved" >> "$GITHUB_OUTPUT"
+          fi
 
   pr-project:
     needs: check-reviewers
