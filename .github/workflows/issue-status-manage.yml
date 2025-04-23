@@ -8,7 +8,7 @@ on:
 jobs:
   issue-project:
     if: github.event_name == 'issues' && github.event.action == 'opened'
-    uses: ./.github/workflows/issue-assignment-to-project.yml@dev
+    uses: ./.github/workflows/issue-assignment-to-project.yml
     with:
       ProjectNumber: 1
       RepositoryName: ${{ github.repository }}
@@ -21,7 +21,7 @@ jobs:
   
   issue-to-inprogress:
     if:  github.event_name == 'issues' && github.event.label.name == 'in-progress'
-    uses: ./.github/workflows/issue-assignment-to-project.yml@dev
+    uses: ./.github/workflows/issue-assignment-to-project.yml
     with:
       ProjectNumber: 1
       RepositoryName: ${{ github.repository }}

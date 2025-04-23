@@ -53,7 +53,7 @@ jobs:
   update-project-status:
     needs: extract-and-close-issue
     if: needs.extract-and-close-issue.outputs.is_closed == 'true'
-    uses: ./.github/workflows/issue-assignment-to-project.yml@dev
+    uses: ./.github/workflows/issue-assignment-to-project.yml
     with:
       ProjectNumber: 1
       RepositoryName: ${{ github.repository }}
