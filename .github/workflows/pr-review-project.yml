@@ -3,7 +3,7 @@ name: Pr Review
 permissions:
   contents: read
   pull-requests: write
-  project: write
+  projects: write
 
 on:
   pull_request:

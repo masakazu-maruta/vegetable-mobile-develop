@@ -3,7 +3,7 @@ name: Issue Status Manage
 permissions:
   contents: read
   issues: write
-  project: write
+  projects: write
 
 on:
   issues:
