@@ -25,7 +25,7 @@ jobs:
             ISSUE_URL="${{ github.event.issue.html_url }}"
             TITLE="${{ github.event.issue.title }}"
             if [[ "$ACTION" == "opened" ]]; then
-              MESSAGE="## 📚 **ISSUE が作成されました**\n📝 **タイトル:** $TITLE \n🔗 **リンク:** $ISSUE_URL"
+              MESSAGE="## 📚 ISSUE: [$TITLE]($ISSUE_URL) が作成されました"
             fi
 
           elif [[ "$EVENT_TYPE" == "pull_request" ]]; then
@@ -36,34 +36,34 @@ jobs:
             if [[ "$ACTION" == "opened" ]]; then
               REVIEWERS_COUNT=$(echo "${{ toJson(github.event.pull_request.requested_reviewers) }}" | jq 'length')
               if [[ "$REVIEWERS_COUNT" -gt 0 ]]; then
-                MESSAGE="## 👀 ** レビュー依頼付き PR が作成されました**\n📝 **タイトル:** $TITLE \n🔗 **リンク:** $PR_URL"
+                MESSAGE="## 👀 PR: レビュー依頼付き [$TITLE]($PR_URL) が作成されました"
               else
-                MESSAGE="## 🔃 **PR が作成されました**\n📝 **タイトル:** $TITLE  \n🔗 **リンク:** $PR_URL"
+                MESSAGE="## 🔃 PR: [$TITLE]($PR_URL) が作成されました"
               fi
             elif [[ "$ACTION" == "review" ]]; then
               REVIEW_STATE="${{ github.event.review.state }}"  # approved / changes_requested / commented
               REVIEWER="${{ github.event.review.user.login }}"
               case "$REVIEW_STATE" in
                 approved)
-                  MESSAGE="## ✅ **$REVIEWER が PR を承認しました**\n📝 **タイトル:** $TITLE \n🔗 **リンク:** $PR_URL"
+                  MESSAGE="## ✅ $REVIEWER が [$TITLE]($PR_URL) を承認しました"
                   ;;
                 changes_requested)
-                  MESSAGE="## 🔧 **$REVIEWER が PR に修正をリクエストしました**\n📝 **タイトル:** $TITLE \n🔗 **リンク:** $PR_URL"
+                  MESSAGE="## 🔧 $REVIEWER が [$TITLE]($PR_URL) に修正をリクエストしました"
                   ;;
               esac
             elif [[ "$ACTION" == "closed" ]]; then
               MERGED="${{ github.event.pull_request.merged }}"
               if [[ "$MERGED" == "true" ]]; then
-                MESSAGE="## 🎉 **PR がマージされました！**\n📝 **タイトル:** $TITLE \n🔗 **リンク:** $PR_URL"
+                MESSAGE="## 🎉 [$TITLE]($PR_URL) がマージされました！"
               else
-                MESSAGE="## ❌ **マージ無しで PR がクローズされました...**\n📝 **タイトル:** $TITLE \n🔗 **リンク:** $PR_URL"
+                MESSAGE="## ❌ マージ無しで [$TITLE]($PR_URL) がクローズされました..."
               fi
             fi
           elif [[ "$EVENT_TYPE" == "push" ]]; then
             BRANCH="${{ github.ref_name }}"
             AUTHOR="${{ github.event.head_commit.author.name }}"
             BRANCH_URL="https://github.com/$REPO/tree/$BRANCH"
-            MESSAGE="## 🚀 **${AUTHOR} が \`$BRANCH\` ブランチに Push しました！**\n🔗 リンク: $BRANCH_URL"
+            MESSAGE="## 🚀 ${AUTHOR} が [$BRANCH]($BRANCH_URL) に Push しました！"
           fi
 
           if [[ -n "$MESSAGE" ]]; then
