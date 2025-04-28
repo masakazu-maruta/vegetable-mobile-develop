@@ -64,7 +64,7 @@ jobs:
           TITLE="${{ github.event.pull_request.title }}"
           if ! gh pr merge $PR_URL --merge --delete-branch --admin; then
             echo "❌ 自動マージに失敗しました"
-            MESSAGE="## ❌ **自動マージ失敗**\n📝 **タイトル:** $TITLE \n🔗 **リンク:** $PR_URL"
+            MESSAGE="## ❌ 自動マージ失敗 [$TITLE]($PR_URL)"
             curl -X POST -H "Content-Type: application/json" \
               -d "{\"content\": \"$MESSAGE\"}" \
               $DISCORD_WEBHOOK
